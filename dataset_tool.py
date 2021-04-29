@@ -174,7 +174,7 @@ def open_cifar100(tarball: str, *, max_images: Optional[int]):
         with tar.extractfile(member) as file:
             data = pickle.load(file, encoding='bytes')
         images = data[b'data'].reshape(-1, 3, 32, 32)
-        labels = np.array(data[b'coarse_labels'])
+        labels = np.array(data[b'fine_labels'])
 
     #images = np.concatenate(images)
     #labels = np.concatenate(labels)
