@@ -164,6 +164,36 @@ def open_cifar10(tarball: str, *, max_images: Optional[int]):
 
     return max_idx, iterate_images()
 
+
+def open_cifar100(tarball: str, *, max_images: Optional[int]):
+    images = []
+    labels = []
+
+    with tarfile.open(tarball, 'r:gz') as tar:
+        member = tar.getmember(f'cifar-100-python/train')
+        with tar.extractfile(member) as file:
+            data = pickle.load(file, encoding='bytes')
+        images = data[b'data'].reshape(-1, 3, 32, 32)
+        labels = data[b'coarse_labels'])
+
+    #images = np.concatenate(images)
+    #labels = np.concatenate(labels)
+    images = images.transpose([0, 2, 3, 1]) # NCHW -> NHWC
+    assert images.shape == (50000, 32, 32, 3) and images.dtype == np.uint8
+    assert labels.shape == (50000,) and labels.dtype in [np.int32, np.int64]
+    assert np.min(images) == 0 and np.max(images) == 255
+    assert np.min(labels) == 0 and np.max(labels) == 9
+
+    max_idx = maybe_min(len(images), max_images)
+
+    def iterate_images():
+        for idx, img in enumerate(images):
+            yield dict(img=img, label=int(labels[idx]))
+            if idx >= max_idx-1:
+                break
+
+    return max_idx, iterate_images()
+
 #----------------------------------------------------------------------------
 
 def open_mnist(images_gz: str, *, max_images: Optional[int]):
@@ -258,6 +288,8 @@ def open_dataset(source, *, max_images: Optional[int]):
     elif os.path.isfile(source):
         if os.path.basename(source) == 'cifar-10-python.tar.gz':
             return open_cifar10(source, max_images=max_images)
+        elif os.path.basename(source) == 'cifar-100-python.tar.gz':
+            return open_cifar100(source, max_images=max_images)
         elif os.path.basename(source) == 'train-images-idx3-ubyte.gz':
             return open_mnist(source, max_images=max_images)
         elif file_ext(source) == 'zip':
