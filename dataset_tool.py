@@ -182,7 +182,7 @@ def open_cifar100(tarball: str, *, max_images: Optional[int]):
     assert images.shape == (50000, 32, 32, 3) and images.dtype == np.uint8
     assert labels.shape == (50000,) and labels.dtype in [np.int32, np.int64]
     assert np.min(images) == 0 and np.max(images) == 255
-    assert np.min(labels) == 0 and np.max(labels) == 9
+    assert np.min(labels) == 0 and np.max(labels) == 99
 
     max_idx = maybe_min(len(images), max_images)
 
