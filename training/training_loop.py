@@ -187,6 +187,7 @@ def training_loop(
     while i <= 20:
         i += 1
         run_dir = f'{base_dir}_{i}'
+        os.makedirs(run_dir)
         start_time = time.time()
         device = torch.device('cuda', rank)
         np.random.seed(random_seed * num_gpus + rank)
@@ -235,7 +236,7 @@ def training_loop(
             
             prune_model_custom(G, mask_dict)
             prune_model_custom(G_ema, mask_dict)
-            
+
         if (resume_pkl is not None) and (rank == 0):
             print(f'Resuming from "{resume_pkl}"')
             with dnnlib.util.open_url(resume_pkl) as f:
