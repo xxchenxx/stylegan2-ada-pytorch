@@ -187,7 +187,8 @@ def training_loop(
     while i <= 20:
         i += 1
         run_dir = f'{base_dir}_{i}'
-        os.makedirs(run_dir)
+        if not os.exists(run_dir):
+            os.makedirs(run_dir)
         start_time = time.time()
         device = torch.device('cuda', rank)
         np.random.seed(random_seed * num_gpus + rank)
