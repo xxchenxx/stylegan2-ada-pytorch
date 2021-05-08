@@ -183,7 +183,7 @@ def training_loop(
     while i <= 20:
         i += 1
         run_dir = f'{base_dir}_{i}'
-        if not os.path.exists(run_dir):
+        if not os.path.exists(run_dir) and rank == 0:
             os.makedirs(run_dir)
         start_time = time.time()
         device = torch.device('cuda', rank)
