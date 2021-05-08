@@ -214,9 +214,6 @@ def training_loop(
         G = dnnlib.util.construct_class_by_name(**G_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
         D = dnnlib.util.construct_class_by_name(**D_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
         G_ema = copy.deepcopy(G).eval()
-        pruning_model(G_ema, 0.2)
-        pruning_model(G, 0.2)
-        assert False
         # Resume from existing pickle
         # .
 
