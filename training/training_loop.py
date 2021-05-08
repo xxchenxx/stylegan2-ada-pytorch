@@ -33,7 +33,7 @@ def pruning_model(model, px, conv1=False):
     print('start unstructured pruning for all conv layers')
     parameters_to_prune =[]
     for name, m in model.named_modules():
-        print(m.__name__)
+        print(m.__class__.__base__)
         if isinstance(m, Conv2dLayer):
             parameters_to_prune.append((m,'weight'))
 
