@@ -33,8 +33,7 @@ def pruning_model(model, px, conv1=False):
     print('start unstructured pruning for all conv layers')
     parameters_to_prune =[]
     for name, m in model.named_modules():
-        print(m.__class__.__name__)
-        if isinstance(m, Conv2dLayer):
+        if (m.__class__.__name__ == 'SynthesisLayer'):
             parameters_to_prune.append((m,'weight'))
 
 
@@ -49,7 +48,7 @@ def pruning_model(model, px, conv1=False):
 def remove_prune(model, conv1=True):
     print('remove pruning')
     for name, m in model.named_modules():
-        if isinstance(m, Conv2dLayer):
+        if (m.__class__.__name__ == 'SynthesisLayer'):
             prune.remove(m,'weight')
 
 def extract_mask(model_dict):
