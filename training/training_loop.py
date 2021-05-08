@@ -179,6 +179,7 @@ def training_loop(
     # Initialize.
     i = 0
     base_dir = str(run_dir)
+
     while i <= 20:
         i += 1
         run_dir = f'{base_dir}_{i}'
@@ -214,7 +215,9 @@ def training_loop(
         G = dnnlib.util.construct_class_by_name(**G_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
         D = dnnlib.util.construct_class_by_name(**D_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
         G_ema = copy.deepcopy(G).eval()
-
+        pruning_model(G_ema, 0.2)
+        pruning_model(G, 0.2)
+        assert False
         # Resume from existing pickle
         # .
 
