@@ -26,13 +26,14 @@ from torch_utils.ops import grid_sample_gradfix
 
 import legacy
 from metrics import metric_main
+from training.networks import Conv2dLayer
 
 def pruning_model(model, px, conv1=False):
 
     print('start unstructured pruning for all conv layers')
     parameters_to_prune =[]
     for name, m in model.named_modules():
-        if isinstance(m, nn.Conv2d):
+        if isinstance(m, Conv2dLayer):
             if name == 'conv1':
                 if not conv1:
                     continue
@@ -53,9 +54,8 @@ def pruning_model(model, px, conv1=False):
 def remove_prune(model, conv1=True):
     print('remove pruning')
     for name, m in model.named_modules():
-        if isinstance(m, nn.Conv2d):
-            if (name == 'conv1' and conv1) or (name != 'conv1'):
-                prune.remove(m,'weight')
+        if isinstance(m, Conv2dLayer):
+            prune.remove(m,'weight')
 
 def extract_mask(model_dict):
     new_dict = {}
