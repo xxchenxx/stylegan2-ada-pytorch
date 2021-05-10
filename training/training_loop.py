@@ -180,6 +180,8 @@ def training_loop(
     base_dir = str(run_dir)
 
     while i <= 20:
+        pruning_model(G_ema, 0.2)
+        pruning_model(G, 0.2)
         i += 1
         run_dir = f'{base_dir}_{i}'
         if not os.path.exists(run_dir) and rank == 0:
