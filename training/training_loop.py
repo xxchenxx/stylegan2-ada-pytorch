@@ -218,7 +218,7 @@ def training_loop(
         # .
 
         if os.path.exists('initialization.pkl') and i > 1:
-            mask_dict = extract_mask(G_ema)
+            mask_dict = extract_mask(G_ema.state_dict())
             remove_prune(G_ema)
             remove_prune(G)
 
@@ -234,7 +234,7 @@ def training_loop(
                 resume_data = legacy.load_network_pkl(f)
             for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
                 misc.copy_params_and_buffers(resume_data[name], module, require_all=False)
-                
+
         if (resume_pkl is not None) and (rank == 0):
             print(f'Resuming from "{resume_pkl}"')
             with dnnlib.util.open_url(resume_pkl) as f:
