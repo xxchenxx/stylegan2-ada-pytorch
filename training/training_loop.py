@@ -216,14 +216,13 @@ def training_loop(
             G = dnnlib.util.construct_class_by_name(**G_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
             D = dnnlib.util.construct_class_by_name(**D_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
             G_ema = copy.deepcopy(G).eval()
-        # Resume from existing pickle
-        # .
-
-        if os.path.exists('initialization.pkl') and i > 1:
+        elif os.path.exists('initialization.pkl') and i > 1:
             mask_dict = extract_mask(G_ema.state_dict())
             remove_prune(G_ema)
             remove_prune(G)
-
+            G = dnnlib.util.construct_class_by_name(**G_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
+            D = dnnlib.util.construct_class_by_name(**D_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
+            G_ema = copy.deepcopy(G).eval()
             with dnnlib.util.open_url('initialization.pkl') as f:
                 resume_data = legacy.load_network_pkl(f)
             for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
