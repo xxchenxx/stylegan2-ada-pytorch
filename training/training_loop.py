@@ -217,14 +217,14 @@ def training_loop(
         # Resume from existing pickle
         # .
 
-        if os.path.exists(os.path.join(run_dir, 'initialization.pkl')) and i > 1:
+        if os.path.exists('initialization.pkl') and i > 1:
             mask_dict = extract_mask(G_ema)
             remove_prune(G_ema)
             remove_prune(G)
 
 
 
-            with dnnlib.util.open_url(os.path.join(run_dir, 'initialization.pkl')) as f:
+            with dnnlib.util.open_url('initialization.pkl') as f:
                 resume_data = legacy.load_network_pkl(f)
             for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
                 misc.copy_params_and_buffers(resume_data[name], module, require_all=False)
@@ -334,7 +334,7 @@ def training_loop(
         if progress_fn is not None:
             progress_fn(0, total_kimg)
         
-        snapshot_pkl = os.path.join(run_dir, 'initialization.pkl')
+        snapshot_pkl = 'initialization.pkl'
         if not os.path.exists(snapshot_pkl) and i == 1:
             snapshot_data = dict(training_set_kwargs=dict(training_set_kwargs))
             for name, module in [('G', G), ('D', D), ('G_ema', G_ema), ('augment_pipe', augment_pipe)]:
