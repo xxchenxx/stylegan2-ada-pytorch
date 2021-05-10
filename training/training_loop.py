@@ -222,8 +222,6 @@ def training_loop(
             remove_prune(G_ema)
             remove_prune(G)
 
-
-
             with dnnlib.util.open_url('initialization.pkl') as f:
                 resume_data = legacy.load_network_pkl(f)
             for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
@@ -231,7 +229,12 @@ def training_loop(
             
             prune_model_custom(G, mask_dict)
             prune_model_custom(G_ema, mask_dict)
-
+        elif os.path.exists('initialization.pkl'):
+            with dnnlib.util.open_url('initialization.pkl') as f:
+                resume_data = legacy.load_network_pkl(f)
+            for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
+                misc.copy_params_and_buffers(resume_data[name], module, require_all=False)
+                
         if (resume_pkl is not None) and (rank == 0):
             print(f'Resuming from "{resume_pkl}"')
             with dnnlib.util.open_url(resume_pkl) as f:
