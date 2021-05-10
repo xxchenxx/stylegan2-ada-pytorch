@@ -176,7 +176,7 @@ def training_loop(
     pruning                 = False,
 ):
     # Initialize.
-    i = 0
+    i = 1
     base_dir = str(run_dir)
 
     while i <= 20:
