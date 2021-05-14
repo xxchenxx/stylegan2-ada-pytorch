@@ -179,7 +179,7 @@ def training_loop(
     i = 0
     base_dir = str(run_dir)
 
-    while i <= 20:
+    while i <= 5:
         
         i += 1
         run_dir = f'{base_dir}_{i}'
