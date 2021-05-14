@@ -179,8 +179,11 @@ def open_cifar100(tarball: str, *, max_images: Optional[int]):
     #images = np.concatenate(images)
     #labels = np.concatenate(labels)
     images = images.transpose([0, 2, 3, 1]) # NCHW -> NHWC
-    assert images.shape == (50000, 32, 32, 3) and images.dtype == np.uint8
-    assert labels.shape == (50000,) and labels.dtype in [np.int32, np.int64]
+    perm = np.random.permutation(50000)[:5000]
+    images = images[perm]
+    labels = labels[perm]
+    assert images.shape == (5000, 32, 32, 3) and images.dtype == np.uint8
+    assert labels.shape == (5000,) and labels.dtype in [np.int32, np.int64]
     assert np.min(images) == 0 and np.max(images) == 255
     print(np.max(labels))
     print(np.min(labels))
