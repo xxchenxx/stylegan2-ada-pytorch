@@ -173,16 +173,16 @@ def training_loop(
     allow_tf32              = False,    # Enable torch.backends.cuda.matmul.allow_tf32 and torch.backends.cudnn.allow_tf32?
     abort_fn                = None,     # Callback function for determining whether to abort training. Must return consistent results across ranks.
     progress_fn             = None,     # Callback function for updating training progress. Called for all ranks.
-    finetune_checkpoint     = None,
+    pruning                 = False,
 ):
     # Initialize.
     i = 0
     base_dir = str(run_dir)
 
-    while i <= 0:
+    while i <= 20:
         
         i += 1
-        run_dir = f'{base_dir}_finetune'
+        run_dir = f'{base_dir}_{i}'
         if not os.path.exists(run_dir) and rank == 0:
             os.makedirs(run_dir)
         start_time = time.time()
@@ -212,8 +212,11 @@ def training_loop(
         if rank == 0:
             print('Constructing networks...')
         common_kwargs = dict(c_dim=training_set.label_dim, img_resolution=training_set.resolution, img_channels=training_set.num_channels)
-        assert os.path.exists(finetune_checkpoint)
-        if os.path.exists(finetune_checkpoint) and i > 1:
+        if i == 1:
+            G = dnnlib.util.construct_class_by_name(**G_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
+            D = dnnlib.util.construct_class_by_name(**D_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
+            G_ema = copy.deepcopy(G).eval()
+        elif os.path.exists('initialization.pkl') and i > 1:
             mask_dict = extract_mask(G_ema.state_dict())
             print(mask_dict)
             remove_prune(G_ema)
