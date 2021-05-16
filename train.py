@@ -63,7 +63,8 @@ def setup_training_loop_kwargs(
     nhwc       = None, # Use NHWC memory format with FP16: <bool>, default = False
     allow_tf32 = None, # Allow PyTorch to use TF32 for matmul and convolutions: <bool>, default = False
     nobench    = None, # Disable cuDNN benchmarking: <bool>, default = False
-    workers    = None, # Override number of DataLoader workers: <int>, default = 3
+    workers    = None, # Override number of DataLoader workers: <int>, default = 3,
+    finetune_checkpoint = None
 ):
     args = dnnlib.EasyDict()
 
@@ -191,7 +192,7 @@ def setup_training_loop_kwargs(
     args.batch_gpu = spec.mb // spec.ref_gpus
     args.ema_kimg = spec.ema
     args.ema_rampup = spec.ramp
-
+    args.finetune_checkpoint = finetune_checkpoint
     if cfg == 'cifar':
         args.loss_kwargs.pl_weight = 0 # disable path length regularization
         args.loss_kwargs.style_mixing_prob = 0 # disable style mixing
@@ -435,6 +436,8 @@ class CommaSeparatedList(click.ParamType):
 @click.option('--nobench', help='Disable cuDNN benchmarking', type=bool, metavar='BOOL')
 @click.option('--allow-tf32', help='Allow PyTorch to use TF32 internally', type=bool, metavar='BOOL')
 @click.option('--workers', help='Override number of DataLoader workers', type=int, metavar='INT')
+@click.option('--finetune-checkpoint', help='finetune checkpoint', type=str, metavar='PKL')
+
 
 def main(ctx, outdir, dry_run, **config_kwargs):
     """Train a GAN using the techniques described in the paper

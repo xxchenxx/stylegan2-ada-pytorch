@@ -174,6 +174,7 @@ def training_loop(
     abort_fn                = None,     # Callback function for determining whether to abort training. Must return consistent results across ranks.
     progress_fn             = None,     # Callback function for updating training progress. Called for all ranks.
     pruning                 = False,
+    finetune_checkpoint = None
 ):
     # Initialize.
     i = 0
@@ -212,36 +213,31 @@ def training_loop(
         if rank == 0:
             print('Constructing networks...')
         common_kwargs = dict(c_dim=training_set.label_dim, img_resolution=training_set.resolution, img_channels=training_set.num_channels)
-        if i == 1:
-            G = dnnlib.util.construct_class_by_name(**G_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
-            D = dnnlib.util.construct_class_by_name(**D_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
-            G_ema = copy.deepcopy(G).eval()
-        elif os.path.exists('initialization.pkl') and i > 1:
-            mask_dict = extract_mask(G_ema.state_dict())
-            remove_prune(G_ema)
-            remove_prune(G)
-            G = dnnlib.util.construct_class_by_name(**G_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
-            D = dnnlib.util.construct_class_by_name(**D_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
-            G_ema = copy.deepcopy(G).eval()
-            with dnnlib.util.open_url('initialization.pkl') as f:
-                resume_data = legacy.load_network_pkl(f)
-            for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
-                misc.copy_params_and_buffers(resume_data[name], module, require_all=False)
-            
-            prune_model_custom(G, mask_dict)
-            prune_model_custom(G_ema, mask_dict)
-        elif os.path.exists('initialization.pkl'):
-            with dnnlib.util.open_url('initialization.pkl') as f:
-                resume_data = legacy.load_network_pkl(f)
-            for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
-                misc.copy_params_and_buffers(resume_data[name], module, require_all=False)
 
-        if (resume_pkl is not None) and (rank == 0):
-            print(f'Resuming from "{resume_pkl}"')
-            with dnnlib.util.open_url(resume_pkl) as f:
-                resume_data = legacy.load_network_pkl(f)
+        assert os.path.exists('initialization.pkl')
+        assert os.path.exists(finetune_checkpoint)
+        G = dnnlib.util.construct_class_by_name(**G_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
+        D = dnnlib.util.construct_class_by_name(**D_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
+        G_ema = copy.deepcopy(G).eval()
+
+        with dnnlib.util.open_url(finetune_checkpoint) as f:
+            resume_data = legacy.load_network_pkl(f)
             for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
                 misc.copy_params_and_buffers(resume_data[name], module, require_all=False)
+        
+        mask_dict = extract_mask(G_ema.state_dict())
+        remove_prune(G_ema)
+        remove_prune(G)
+        G = dnnlib.util.construct_class_by_name(**G_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
+        D = dnnlib.util.construct_class_by_name(**D_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
+        G_ema = copy.deepcopy(G).eval()
+        with dnnlib.util.open_url('initialization.pkl') as f:
+            resume_data = legacy.load_network_pkl(f)
+        for name, module in [('G', G), ('D', D), ('G_ema', G_ema)]:
+            misc.copy_params_and_buffers(resume_data[name], module, require_all=False)
+        
+        prune_model_custom(G, mask_dict)
+        prune_model_custom(G_ema, mask_dict)
 
         # Print network summary tables.
         if rank == 0:
