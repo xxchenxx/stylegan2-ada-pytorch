@@ -71,8 +71,8 @@ def extract_main_weight(model_dict):
 
 def prune_model_custom(model, mask_dict):
 
-    for name,m in model.named_modules():
-        if isinstance(m, nn.Conv2d):
+    for name, m in model.named_modules():
+        if (m.__class__.__name__ == 'SynthesisLayer'):
             print('pruning layer with custom mask:', name)
             try:
                 prune.CustomFromMask.apply(m, 'weight', mask=mask_dict[name+'.weight_mask'])
