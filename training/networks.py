@@ -753,8 +753,8 @@ class Discriminator(torch.nn.Module):
     
     def PGD_rev(self, x, img, cmap, steps=1, gamma=1e-10):
     
-        x_adv = x.clone()
-
+        x_adv = x.clone().detach()
+        x_adv.requires_grad = True
         for t in range(steps):
             out = self.second_forward(x_adv, img, cmap)
             loss_adv0 = -torch.nn.functional.softplus(out).mean()
