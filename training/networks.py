@@ -746,7 +746,9 @@ class Discriminator(torch.nn.Module):
         for t in range(steps):
             out = self.second_forward(x_adv, img, cmap)
             loss_adv0 = -torch.nn.functional.softplus(-out).mean()
-            grad0 = torch.autograd.grad(loss_adv0, x_adv, only_inputs=True)[0]
+            loss_adv0.backward()
+            print(x_adv.grad)
+            #grad0 = torch.autograd.grad(loss_adv0, x_adv, only_inputs=True)[0]
             x_adv.data.add_(gamma * torch.sign(grad0.data))
 
         return x_adv
