@@ -746,9 +746,10 @@ class Discriminator(torch.nn.Module):
         for t in range(steps):
             out = self.second_forward(x_adv, img, cmap)
             loss_adv0 = -torch.nn.functional.softplus(-out).mean()
-            loss_adv0.backward()
-            x_adv.data.add_(gamma * torch.sign(x_adv.grad.data))
-            self.zero_grad()
+            grad0 = torch.autograd.grad(loss_adv0, x_adv, only_inputs=True)[0]
+            x_adv.data.add_(gamma * torch.sign(grad0.data))
+            #x_adv.data.add_(gamma * torch.sign(x_adv.grad.data))
+            #self.zero_grad()
         return x_adv
     
     def PGD_rev(self, x, img, cmap, steps=1, gamma=1e-10):
@@ -758,11 +759,11 @@ class Discriminator(torch.nn.Module):
         for t in range(steps):
             out = self.second_forward(x_adv, img, cmap)
             loss_adv0 = -torch.nn.functional.softplus(out).mean()
-            #grad0 = torch.autograd.grad(loss_adv0, x_adv, only_inputs=True)[0]
-            #x_adv.data.add_(gamma * torch.sign(grad0.data))
-            loss_adv0.backward()
-            x_adv.data.add_(gamma * torch.sign(x_adv.grad.data))
-            self.zero_grad()
+            grad0 = torch.autograd.grad(loss_adv0, x_adv, only_inputs=True)[0]
+            x_adv.data.add_(gamma * torch.sign(grad0.data))
+            #loss_adv0.backward()
+            #x_adv.data.add_(gamma * torch.sign(x_adv.grad.data))
+            #self.zero_grad()
 
         return x_adv
 #----------------------------------------------------------------------------
