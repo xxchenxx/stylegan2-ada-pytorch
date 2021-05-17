@@ -741,7 +741,7 @@ class Discriminator(torch.nn.Module):
     
     def PGD(self, x, img, cmap, steps=1, gamma=1e-10):
     
-        x_adv = x.clone()
+        x_adv = x.clone().detach()
 
         for t in range(steps):
             out = self.second_forward(x_adv, img, cmap)
