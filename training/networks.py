@@ -715,6 +715,16 @@ class Discriminator(torch.nn.Module):
         self.b4 = DiscriminatorEpilogue(channels_dict[4], cmap_dim=cmap_dim, resolution=4, **epilogue_kwargs, **common_kwargs)
 
     def forward(self, img, c, **block_kwargs):
+        x, img, cmap = self.first_forward(img, c, **block_kwargs)
+        x_adv = self.PGD(x, img, cmap)
+        x_adv_rev = self.PGD_rev(x, img, cmap)
+        x, img, cmap = self.first_forward(img, c, **block_kwargs)
+        x = self.second_forward(x, img, cmap)
+        x_adv = self.second_forward(x_adv, img, cmap)
+        x_adv_rev = self.second_forward(x_adv_rev, img, cmap)
+        return x, x_adv, x_adv_rev
+
+    def first_forward(self, img, c, **block_kwargs):
         x = None
         for res in self.block_resolutions:
             block = getattr(self, f'b{res}')
@@ -723,7 +733,33 @@ class Discriminator(torch.nn.Module):
         cmap = None
         if self.c_dim > 0:
             cmap = self.mapping(None, c)
+        return x, img, cmap
+    
+    def second_forward(self, x, img, cmap):
         x = self.b4(x, img, cmap)
         return x
+    
+    def PGD(self, x, img, cmap, steps=1, gamma=1e-10):
+    
+        x_adv = x.clone()
 
+        for t in range(steps):
+            out = self.second_forward(x_adv, img, cmap)
+            loss_adv0 = -torch.nn.functional.softplus(-out)
+            grad0 = torch.autograd.grad(loss_adv0, x_adv, only_inputs=True)[0]
+            x_adv.data.add_(gamma * torch.sign(grad0.data))
+
+        return x_adv
+    
+    def PGD_rev(self, x, img, cmap, steps=1, gamma=1e-10):
+    
+        x_adv = x.clone()
+
+        for t in range(steps):
+            out = self.second_forward(x_adv, img, cmap)
+            loss_adv0 = -torch.nn.functional.softplus(out)
+            grad0 = torch.autograd.grad(loss_adv0, x_adv, only_inputs=True)[0]
+            x_adv.data.add_(gamma * torch.sign(grad0.data))
+
+        return x_adv
 #----------------------------------------------------------------------------
