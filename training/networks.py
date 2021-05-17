@@ -742,11 +742,10 @@ class Discriminator(torch.nn.Module):
     def PGD(self, x, img, cmap, steps=1, gamma=1e-10):
     
         x_adv = x.clone().detach()
+        x_adv.requires_grad = True
         for t in range(steps):
             out = self.second_forward(x_adv, img, cmap)
             loss_adv0 = -torch.nn.functional.softplus(-out).mean()
-            print(loss_adv0)
-            print(x_adv)
             grad0 = torch.autograd.grad(loss_adv0, x_adv, only_inputs=True)[0]
             x_adv.data.add_(gamma * torch.sign(grad0.data))
 
