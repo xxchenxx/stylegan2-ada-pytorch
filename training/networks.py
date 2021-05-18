@@ -739,7 +739,7 @@ class Discriminator(torch.nn.Module):
         x = self.b4(x, img, cmap)
         return x
     
-    def PGD(self, x, img, cmap, steps=1, gamma=1e-10):
+    def PGD(self, x, img, cmap, steps=0, gamma=1e-10):
     
         x_adv = x.clone().detach()
         x_adv.requires_grad = True
@@ -752,7 +752,7 @@ class Discriminator(torch.nn.Module):
             #self.zero_grad()
         return x_adv
     
-    def PGD_rev(self, x, img, cmap, steps=1, gamma=1e-10):
+    def PGD_rev(self, x, img, cmap, steps=0, gamma=1e-10):
     
         x_adv = x.clone().detach()
         x_adv.requires_grad = True
