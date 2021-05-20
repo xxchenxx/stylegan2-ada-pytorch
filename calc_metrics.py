@@ -25,6 +25,34 @@ from torch_utils import misc
 
 #----------------------------------------------------------------------------
 
+def extract_mask(model_dict):
+    new_dict = {}
+
+    for key in model_dict.keys():
+        if 'mask' in key:
+            new_dict[key] = model_dict[key]
+
+    return new_dict
+
+def extract_main_weight(model_dict):
+    new_dict = {}
+
+    for key in model_dict.keys():
+        if not 'mask' in key:
+            new_dict[key] = model_dict[key]
+
+    return new_dict
+
+def prune_model_custom(model, mask_dict):
+
+    for name, m in model.named_modules():
+        if (m.__class__.__name__ == 'SynthesisLayer'):
+            print('pruning layer with custom mask:', name)
+            try:
+                prune.CustomFromMask.apply(m, 'weight', mask=mask_dict[name+'.weight_mask'])
+            except:
+                pass
+
 def subprocess_fn(rank, args, temp_dir):
     dnnlib.util.Logger(should_flush=True)
 
@@ -50,6 +78,7 @@ def subprocess_fn(rank, args, temp_dir):
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
     G = copy.deepcopy(args.G).eval().requires_grad_(False).to(device)
+
     if rank == 0 and args.verbose:
         z = torch.empty([1, G.z_dim], device=device)
         c = torch.empty([1, G.c_dim], device=device)
