@@ -68,7 +68,7 @@ class StyleGAN2Loss(Loss):
                 gen_logits, gen_logits_adv, _ = self.run_D(gen_img, gen_c, sync=False)
                 training_stats.report('Loss/scores/fake', gen_logits)
                 training_stats.report('Loss/signs/fake', gen_logits.sign())
-                loss_Gmain = (torch.nn.functional.softplus(-gen_logits) + torch.nn.functional.softplus(-gen_logits_adv)) # -log(sigmoid(gen_logits))
+                loss_Gmain = (torch.nn.functional.softplus(-gen_logits))# + torch.nn.functional.softplus(-gen_logits_adv)) # -log(sigmoid(gen_logits))
                 training_stats.report('Loss/G/loss', loss_Gmain)
             with torch.autograd.profiler.record_function('Gmain_backward'):
                 loss_Gmain.mean().mul(gain).backward()
@@ -99,7 +99,7 @@ class StyleGAN2Loss(Loss):
                 gen_logits, _, gen_logits_adv = self.run_D(gen_img, gen_c, sync=False) # Gets synced by loss_Dreal.
                 training_stats.report('Loss/scores/fake', gen_logits)
                 training_stats.report('Loss/signs/fake', gen_logits.sign())
-                loss_Dgen = (torch.nn.functional.softplus(gen_logits) + torch.nn.functional.softplus(gen_logits_adv)) / 2 # -log(1 - sigmoid(gen_logits))
+                loss_Dgen = (torch.nn.functional.softplus(gen_logits)) #+ torch.nn.functional.softplus(gen_logits_adv)) / 2 # -log(1 - sigmoid(gen_logits))
             with torch.autograd.profiler.record_function('Dgen_backward'):
                 loss_Dgen.mean().mul(gain).backward()
 
