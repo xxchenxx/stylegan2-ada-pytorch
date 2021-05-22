@@ -36,7 +36,7 @@ class StyleGAN2Loss(Loss):
         self.pl_mean = torch.zeros([], device=device)
 
         self.gen_logits_ema = 0
-        self.dis_logits_ema = 0
+        self.real_logits_ema = 0
 
     def run_G(self, z, c, sync):
         with misc.ddp_sync(self.G_mapping, sync):
