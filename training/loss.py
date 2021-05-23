@@ -106,7 +106,7 @@ class StyleGAN2Loss(Loss):
                 training_stats.report('Loss/signs/fake', gen_logits.sign())
                 loss_Dgen = torch.nn.functional.softplus(gen_logits) # -log(1 - sigmoid(gen_logits))
             with torch.autograd.profiler.record_function('Dgen_backward'):
-                loss_Dgen = loss_Dgen + 0.3 * ((gen_logits - self.gen_logits_ema) ** 2).mean()
+                loss_Dgen = loss_Dgen + 0.05 * ((gen_logits - self.gen_logits_ema) ** 2).mean()
                 loss_Dgen.mean().mul(gain).backward()
 
         # Dmain: Maximize logits for real images.
@@ -135,7 +135,7 @@ class StyleGAN2Loss(Loss):
                     training_stats.report('Loss/D/reg', loss_Dr1)
 
             with torch.autograd.profiler.record_function(name + '_backward'):
-                loss_Dreal = loss_Dreal + 0.3 * ((real_logits - self.real_logits_ema) ** 2).mean()
+                loss_Dreal = loss_Dreal + 0.05 * ((real_logits - self.real_logits_ema) ** 2).mean()
                 (real_logits * 0 + loss_Dreal + loss_Dr1).mean().mul(gain).backward()
 
 #----------------------------------------------------------------------------
